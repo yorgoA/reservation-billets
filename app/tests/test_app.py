@@ -43,3 +43,6 @@ def test_reservations():
     response = requests.get(f"{BASE_URL}/reservations")
     assert response.status_code == 200
     assert isinstance(response.json(), list)
+
+if __name__ == '__main__':
+    pytest.main()
