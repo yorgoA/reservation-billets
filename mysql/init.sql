@@ -32,7 +32,7 @@ INSERT INTO events (name, date, location, available_tickets) VALUES
 
 INSERT INTO users (name, email) VALUES 
 ('Yorgo Aoun', 'yorgo@gmail.com'),
-('Bruno Mougheraba', 'bruno@gmail.com'),
+('Bruno Megharba', 'bruno@gmail.com'),
 ('Tony godzilla', 'godzilla@yahoo.com');
 
 INSERT INTO reservations (user_id, event_id, num_tickets) VALUES 

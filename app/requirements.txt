@@ -3,3 +3,8 @@ pymysql
 requests
 python-etcd
 cryptography
+redis
+pytest
+pytest-flask
+etcd3
+
