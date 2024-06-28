@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify
 import pymysql
-import etcd
+import etcd3
 import redis
 import logging
 
@@ -20,7 +20,7 @@ redis_host = 'redis'
 redis_port = 6379
 
 # etcd Client
-etcd_client = etcd.Client(host=etcd_host, port=2379)
+etcd_client = etcd3.client(host=etcd_host, port=2379)
 
 # Redis Client
 redis_client = redis.Redis(host=redis_host, port=redis_port, db=0)
@@ -64,12 +64,12 @@ def users():
 @app.route('/etcd-test', methods=['GET'])
 def etcd_test():
     try:
-        etcd_client.write('/test_key', 'test_value')
-        value = etcd_client.read('/test_key').value
-        return value
+        etcd_client.put('/test_key', 'test_value')
+        value, _ = etcd_client.get('/test_key')
+        return value.decode('utf-8')
     except Exception as e:
         logger.error(f"Error interacting with etcd: {e}")
-        return jsonify({"error": "Failed to interact with etcd"}), 500
+        return jsonify({"error": f"Failed to interact with etcd: {str(e)}"}), 500
 
 @app.route('/events', methods=['GET'])
 def get_events():
@@ -103,12 +103,14 @@ def reserve_tickets():
     
     # Acquire Lock
     try:
-        etcd_client.write(lock_key, "locked", ttl=60)
-    except etcd.EtcdAlreadyExist:
+        lease = etcd_client.lease(60)
+        etcd_client.put(lock_key, "locked", lease=lease)
+    except Exception as e:
         return jsonify({"error": "Another reservation is in progress"}), 409
 
     connection = get_db_connection()
     if connection is None:
+        etcd_client.delete(lock_key)  # Release lock in case of DB connection failure
         return jsonify({"error": "Failed to connect to the database"}), 500
 
     try:
